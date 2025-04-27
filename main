@@ -1,0 +1,163 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <sstream>
+using namespace std;
+
+const string FILENAME= "fitness_data.txt";
+
+struct Exercise {
+    int duration;
+    double caloriesBurned;
+    string type;
+};
+
+// Función para calcular calorías dependiendo del tipo y duración
+double calculateCalories(const string& exerciseType, int duration) {
+    if (exerciseType == "Running") {
+        return 10.0 * duration;
+    }
+    else if (exerciseType == "Cycling") {
+        return 7.5 * duration;
+    }
+    else if (exerciseType == "Push-ups") {
+        return 5.0 * duration;
+    }
+    else if (exerciseType == "Jumping Jacks") {
+        return 8.0 * duration;
+    }
+    else {
+        cout << "Ejercicio ingresado no es válido." << endl;
+        return 0.0;
+    }
+}
+
+// Mostrar menú de opciones
+void displayMenu() {
+    cout << "\n=== Menú del Fitness Tracker ===" << endl;
+    cout << "1. Registrar ejercicio realizado" << endl;
+    cout << "2. Mostrar progreso" << endl;
+    cout << "3. Salir" << endl;
+}
+
+// Registrar un nuevo ejercicio
+void registrarEjercicio(vector<Exercise>& ejercicios) {
+    string tipo;
+    int duracion;
+
+    cout << "Ingrese el tipo de ejercicio (Running, Cycling, Push-ups, Jumping Jacks): ";
+    cin >> ws;
+    getline(cin, tipo);
+
+    while (tipo != "Running" && tipo != "Cycling" && tipo != "Push-ups" && tipo != "Jumping Jacks") {
+        cout << "Tipo inválido. Intente nuevamente: ";
+        getline(cin, tipo);
+    }
+    
+    cout << "Ingrese la duración (en minutos): ";
+    cin >> duracion;
+    
+    while (duracion <= 0) {
+        cout << "Duración inválida. Intente nuevamente: ";
+        cin >> duracion;
+    }
+
+    double calorias = calculateCalories(tipo, duracion);
+    ejercicios.push_back({ duracion, calorias, tipo });
+    cout << "Ejercicio registrado: " << calorias << " calorías quemadas." << endl;
+}
+
+
+
+
+
+
+
+
+// Fucion para ensenar total de calorias
+void showProgress(const vector<Exercise>& exercises) {
+    double totalCalorias = 0;
+    
+    for(int i = 0; i < exercises.size(); i++) {
+        totalCalorias += exercises[i].caloriesBurned;
+    }
+    
+    cout<<"\nTotal calorias quemadas: "<<totalCalorias<<" calorias.\n";
+}
+
+// Salvar data en un file
+void saveData(const vector<Exercise>& exercises){
+    ofstream file(FILENAME);
+    
+    if(file.is_open()){
+        for(int i = 0; i < exercises.size(); i++) {
+            file<<exercises[i].type<<","<<exercises[i].duration<< "," <<exercises[i].caloriesBurned<<"\n";
+        }
+        file.close();
+        cout<<"Data salvada\n";
+    }else{
+        cout<<"Error abriendo file.\n";
+    }
+}
+
+// Load data de un file
+void loadData(vector<Exercise>& exercises){
+    ifstream file(FILENAME);
+    string line;
+    
+    if(file.is_open()){
+        
+        while (getline(file, line)){
+            stringstream ss(line);
+            string type, durationStr, caloriesStr;
+            
+            getline(ss, type, ',');
+            getline(ss, durationStr, ',');
+            getline(ss, caloriesStr, ',');
+            
+            int duration = stoi(durationStr);
+            double calories = stod(caloriesStr);
+            
+            exercises.push_back({ duration, calories, type });
+        }
+        file.close();
+        cout<<"Data salvada.\n";
+    }else{
+        cout<<"No data encontrada.\n";
+    }
+}
+
+int main()
+{
+    vector<Exercise> exercises;
+    loadData(exercises);
+    
+    int choice;
+    
+    do {
+        displayMenu();
+        cout<<"Escoga una funcion: ";
+        cin>>choice;
+        
+        switch(choice){
+        case 1:
+            registrarEjercicio(exercises);
+            break;
+            
+        case 2:
+            showProgress(exercises);
+            break;
+            
+        case 3:
+            saveData(exercises);
+            cout<<"Cerrando proigrama.\n";
+            break;
+            
+        default:
+            cout << "Funcion invalido.\n";
+        }
+    }while(choice != 3);
+
+    return 0;
+}
